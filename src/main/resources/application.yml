@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: inventory-service
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE:salary-management-inventory}
+      port: ${MONGODB_PORT:27017}
+  docker:
+    compose:
+      enabled: false
