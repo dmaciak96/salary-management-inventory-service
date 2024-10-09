@@ -1,5 +1,6 @@
 package com.salary.management.inventory_service.model;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,10 +30,19 @@ public class Expense {
     @LastModifiedDate
     private Instant updatedAt;
 
+    @NotNull
     private String name;
+
+    @NotNull
     private BigDecimal amount;
+
+    @NotNull
     private UUID paidByUserId;
+
     private UUID needToPayUserId;
+
+    @NotNull
     private SplitType splitType;
+
     private boolean resolved;
 }
