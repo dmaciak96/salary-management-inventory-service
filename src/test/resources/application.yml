@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: inventory-service
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE:salary-management-inventory}
+      username: ${MONGODB_USERNAME:admin}
+      password: ${MONGODB_PASSWORD:admin}
+      uri: mongodb://${spring.data.mongodb.username}:${spring.data.mongodb.password}@${spring.data.mongodb.host}:${spring.data.mongodb.port}/${spring.data.mongodb.database}?authSource=admin
+      port: ${mongodb.container.port}
+      host: localhost
