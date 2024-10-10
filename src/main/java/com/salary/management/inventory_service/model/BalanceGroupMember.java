@@ -1,6 +1,5 @@
 package com.salary.management.inventory_service.model;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +11,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -21,7 +19,7 @@ import java.util.UUID;
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class Expense {
+public class BalanceGroupMember {
 
     @Id
     private String id;
@@ -32,21 +30,10 @@ public class Expense {
     @LastModifiedDate
     private Instant updatedAt;
 
-    @NotBlank
-    private String name;
-
     @NotNull
-    private BigDecimal amount;
+    private UUID userId;
 
-    @NotNull
-    private UUID paidByUserId;
-
-    private UUID needToPayUserId;
-
-    @NotNull
-    private SplitType splitType;
-
-    private boolean resolved;
+    private String nickname;
 
     @NotNull
     @DocumentReference(lazy = true)
