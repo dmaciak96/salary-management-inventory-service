@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
-import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -21,7 +23,7 @@ import java.util.UUID;
 @Document
 @NoArgsConstructor
 @AllArgsConstructor
-public class Expense {
+public class BalanceGroup {
 
     @Id
     private String id;
@@ -36,19 +38,17 @@ public class Expense {
     private String name;
 
     @NotNull
-    private BigDecimal amount;
+    private UUID ownerUserId;
 
     @NotNull
-    private UUID paidByUserId;
-
-    private UUID needToPayUserId;
-
-    @NotNull
-    private SplitType splitType;
-
-    private boolean resolved;
+    @Builder.Default
+    @ReadOnlyProperty
+    @DocumentReference(lookup = "{'balanceGroup':?#{#self._id} }")
+    private Set<BalanceGroupMember> groupMembers = new HashSet<>();
 
     @NotNull
-    @DocumentReference(lazy = true)
-    private BalanceGroup balanceGroup;
+    @Builder.Default
+    @ReadOnlyProperty
+    @DocumentReference(lookup = "{'balanceGroup':?#{#self._id} }")
+    private Set<Expense> expenses = new HashSet<>();
 }
