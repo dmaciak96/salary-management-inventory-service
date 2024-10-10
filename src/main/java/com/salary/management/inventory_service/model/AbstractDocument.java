@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @SuperBuilder
@@ -15,7 +16,7 @@ import java.time.Instant;
 public abstract class AbstractDocument {
 
     @Id
-    private String id;
+    private UUID id;
 
     @CreatedDate
     private Instant createdAt;
