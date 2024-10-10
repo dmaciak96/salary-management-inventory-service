@@ -1,4 +1,4 @@
-package com.salary.management.inventory_service.model;
+package com.salary.management.inventory_service.model.entity;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

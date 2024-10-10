@@ -1,5 +1,7 @@
-package com.salary.management.inventory_service.model;
+package com.salary.management.inventory_service.model.entity;
 
+import com.salary.management.inventory_service.model.SplitType;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,6 +10,7 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -15,12 +18,23 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class BalanceGroupMember extends AbstractDocument {
+public class Expense extends AbstractDocument {
+
+    @NotBlank
+    private String name;
 
     @NotNull
-    private UUID userId;
+    private BigDecimal amount;
 
-    private String nickname;
+    @NotNull
+    private UUID paidByUserId;
+
+    private UUID needToPayUserId;
+
+    @NotNull
+    private SplitType splitType;
+
+    private boolean resolved;
 
     @NotNull
     @DocumentReference(lazy = true)
