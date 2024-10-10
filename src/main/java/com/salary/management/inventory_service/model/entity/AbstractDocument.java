@@ -1,4 +1,4 @@
-package com.salary.management.inventory_service.model;
+package com.salary.management.inventory_service.model.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

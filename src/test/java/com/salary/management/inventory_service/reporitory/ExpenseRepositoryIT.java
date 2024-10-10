@@ -1,9 +1,9 @@
 package com.salary.management.inventory_service.reporitory;
 
 import com.salary.management.inventory_service.AbstractIT;
-import com.salary.management.inventory_service.model.BalanceGroup;
-import com.salary.management.inventory_service.model.Expense;
 import com.salary.management.inventory_service.model.SplitType;
+import com.salary.management.inventory_service.model.entity.BalanceGroup;
+import com.salary.management.inventory_service.model.entity.Expense;
 import com.salary.management.inventory_service.repository.ExpenseRepository;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,6 @@
 package com.salary.management.inventory_service.repository.listener;
 
-import com.salary.management.inventory_service.model.AbstractDocument;
+import com.salary.management.inventory_service.model.entity.AbstractDocument;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
 import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
 import org.springframework.stereotype.Component;
