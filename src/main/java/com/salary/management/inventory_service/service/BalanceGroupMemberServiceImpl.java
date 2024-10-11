@@ -47,4 +47,10 @@ public class BalanceGroupMemberServiceImpl implements BalanceGroupMemberService 
         return balanceGroupMemberRepository.findAll()
                 .map(balanceGroupMemberMapper::toDto);
     }
+
+    @Override
+    public Flux<BalanceGroupMemberDto> findAllByBalanceGroupId(UUID balanceGroupId) {
+        return balanceGroupMemberRepository.findAllByBalanceGroupId(balanceGroupId)
+                .map(balanceGroupMemberMapper::toDto);
+    }
 }

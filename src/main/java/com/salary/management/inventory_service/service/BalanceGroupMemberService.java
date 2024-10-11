@@ -16,4 +16,6 @@ public interface BalanceGroupMemberService {
     Mono<BalanceGroupMemberDto> findById(UUID id);
 
     Flux<BalanceGroupMemberDto> findAll();
+
+    Flux<BalanceGroupMemberDto> findAllByBalanceGroupId(UUID balanceGroupId);
 }

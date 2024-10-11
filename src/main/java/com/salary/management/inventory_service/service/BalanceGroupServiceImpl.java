@@ -44,7 +44,23 @@ public class BalanceGroupServiceImpl implements BalanceGroupService {
 
     @Override
     public Mono<Void> delete(UUID id) {
-        return balanceGroupRepository.deleteById(id);
+        return balanceGroupRepository.findById(id)
+                .switchIfEmpty(Mono.empty())
+                .flatMap(balanceGroup -> deleteExpensesAndGroupMembers(balanceGroupMapper.toDto(balanceGroup)))
+                .flatMap(balanceGroupDto -> balanceGroupRepository.deleteById(id));
+    }
+
+    private Mono<BalanceGroupDto> deleteExpensesAndGroupMembers(BalanceGroupDto balanceGroupDto) {
+        var savedExpensesMono = Flux.fromIterable(balanceGroupDto.getExpenses())
+                .flatMap(expenseDto -> expenseService.delete(expenseDto.getId()))
+                .then();
+
+        var savedMembersMono = Flux.fromIterable(balanceGroupDto.getGroupMembers())
+                .flatMap(balanceGroupMemberDto -> balanceGroupMemberService.delete(balanceGroupMemberDto.getId()))
+                .then();
+
+        return Mono.when(savedExpensesMono, savedMembersMono)
+                .thenReturn(balanceGroupDto);
     }
 
     @Override

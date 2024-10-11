@@ -47,4 +47,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseRepository.findAll()
                 .map(expenseMapper::toDto);
     }
+
+    @Override
+    public Flux<ExpenseDto> findAllByBalanceGroup(UUID balanceGroupId) {
+        return expenseRepository.findAllByBalanceGroupId(balanceGroupId)
+                .map(expenseMapper::toDto);
+    }
 }

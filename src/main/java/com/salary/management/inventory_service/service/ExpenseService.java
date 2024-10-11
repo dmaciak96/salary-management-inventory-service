@@ -16,4 +16,6 @@ public interface ExpenseService {
     Mono<ExpenseDto> findById(UUID id);
 
     Flux<ExpenseDto> findAll();
+
+    Flux<ExpenseDto> findAllByBalanceGroup(UUID balanceGroupId);
 }
