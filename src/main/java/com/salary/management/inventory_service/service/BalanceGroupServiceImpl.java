@@ -25,21 +25,7 @@ public class BalanceGroupServiceImpl implements BalanceGroupService {
     public Mono<BalanceGroupDto> save(BalanceGroupDto dto) {
         return Mono.just(balanceGroupMapper.toEntity(dto))
                 .flatMap(balanceGroupRepository::save)
-                .map(balanceGroupMapper::toDto)
-                .flatMap(this::saveExpensesAndGroupMembers);
-    }
-
-    private Mono<BalanceGroupDto> saveExpensesAndGroupMembers(BalanceGroupDto balanceGroupDto) {
-        var savedExpensesMono = Flux.fromIterable(balanceGroupDto.getExpenses())
-                .flatMap(expenseDto -> expenseService.save(expenseDto, balanceGroupDto))
-                .then();
-
-        var savedMembersMono = Flux.fromIterable(balanceGroupDto.getGroupMembers())
-                .flatMap(balanceGroupMemberDto -> balanceGroupMemberService.save(balanceGroupMemberDto, balanceGroupDto))
-                .then();
-
-        return Mono.when(savedExpensesMono, savedMembersMono)
-                .thenReturn(balanceGroupDto);
+                .map(balanceGroupMapper::toDto);
     }
 
     @Override
@@ -51,11 +37,11 @@ public class BalanceGroupServiceImpl implements BalanceGroupService {
     }
 
     private Mono<BalanceGroupDto> deleteExpensesAndGroupMembers(BalanceGroupDto balanceGroupDto) {
-        var savedExpensesMono = Flux.fromIterable(balanceGroupDto.getExpenses())
+        var savedExpensesMono = expenseService.findAllByBalanceGroup(balanceGroupDto.getId())
                 .flatMap(expenseDto -> expenseService.delete(expenseDto.getId()))
                 .then();
 
-        var savedMembersMono = Flux.fromIterable(balanceGroupDto.getGroupMembers())
+        var savedMembersMono = balanceGroupMemberService.findAllByBalanceGroupId(balanceGroupDto.getId())
                 .flatMap(balanceGroupMemberDto -> balanceGroupMemberService.delete(balanceGroupMemberDto.getId()))
                 .then();
 
