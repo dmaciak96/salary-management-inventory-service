@@ -1,5 +1,13 @@
 server:
   port: 9100
+management:
+  server:
+    port: 9101
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
 spring:
   application:
     name: inventory-service
