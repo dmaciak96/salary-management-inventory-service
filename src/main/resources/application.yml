@@ -21,3 +21,7 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+logging:
+  file:
+    path: ./logs
+    name: ${spring.application.name}
