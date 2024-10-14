@@ -1,5 +1,13 @@
 server:
   port: 9100
+
+eureka:
+  client:
+    service-url:
+      host: ${EUREKA_HOST:localhost}
+      port: ${EUREKA_PORT:8761}
+      defaultZone: http://${eureka.client.service-url.host}:${eureka.client.service-url.port}/eureka/
+
 management:
   server:
     port: 9101
@@ -24,11 +32,13 @@ spring:
   docker:
     compose:
       enabled: false
+
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
+
 logging:
   file:
     path: ./logs
