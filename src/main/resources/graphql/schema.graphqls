@@ -1,0 +1,63 @@
+type Query {
+    findAllBalanceGroups: [BalanceGroup]
+    findBalanceGroupById(balanceGroupId: ID): BalanceGroup
+    findAllExpensesFromBalanceGroup(balanceGroupId: ID): [Expense]
+    findSingleExpenseInBalanceGroup(balanceGroupId: ID, expenseId: ID): Expense
+    findAllGroupMembersFromBalanceGroup(balanceGroupId: ID): [BalanceGroupMember]
+    findSingleGroupMemberInBalanceGroup(balanceGroupId: ID, balanceGroupMemberId: ID): [BalanceGroupMember]
+}
+
+type Mutation {
+    saveBalanceGroup(balanceGroup: BalanceGroupInput!): BalanceGroup
+    deleteBalanceGroup(balanceGroupId: ID): BalanceGroup
+    saveExpenseInBalanceGroup(balanceGroupId: ID, expense: ExpenseInput!): Expense
+    deleteExpenseFromBalanceGroup(balanceGroupId: ID, expenseId: ID): Expense
+    saveGroupMemberInBalanceGroup(balanceGroupId: ID, balanceGroupMember: BalanceGroupMemberInput!): BalanceGroupMember
+    deleteGroupMemberFromBalanceGroup(balanceGroupId: ID, balanceGroupMemberId: ID): BalanceGroupMember
+}
+
+type BalanceGroup {
+    id: ID
+    createdAt: String
+    updatedAt: String
+    name: String
+    ownerUserId: ID
+}
+
+type BalanceGroupMember {
+    id: ID
+    createdAt: String
+    updatedAt: String
+}
+
+type Expense {
+    id: ID
+    createdAt: String
+    updatedAt: String
+    name: String
+    amount: String
+    paidByUserId: ID
+    needToPayUserId: ID
+    splitType: String
+    resolved: Boolean
+}
+
+input BalanceGroupInput {
+    name: String!
+    ownerUserId: ID!
+}
+
+input ExpenseInput {
+    name: String!
+    amount: String!
+    paidByUserId: ID!
+    splitType: String!
+    needToPayUserId: ID
+    resolved: Boolean
+}
+
+input BalanceGroupMemberInput {
+    userId: ID!
+    nickname: String
+}
+
