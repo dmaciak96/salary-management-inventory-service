@@ -19,6 +19,8 @@ management:
 spring:
   application:
     name: inventory-service
+  webflux:
+    base-path: /api
   data:
     mongodb:
       database: ${MONGODB_DATABASE:salary-management-inventory}

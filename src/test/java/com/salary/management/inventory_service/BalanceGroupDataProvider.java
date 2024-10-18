@@ -4,7 +4,6 @@ import com.salary.management.inventory_service.model.dto.BalanceGroupDto;
 import com.salary.management.inventory_service.model.entity.BalanceGroup;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,8 +23,6 @@ public class BalanceGroupDataProvider {
                 .updatedAt(UPDATED_AT)
                 .name(NAME)
                 .ownerUserId(OWNER_USER_ID)
-                .groupMembers(new HashSet<>(BalanceGroupMemberDataProvider.createBalanceGroupMembers(balanceGroupCreatorIds.groupMemberIds())))
-                .expenses(new HashSet<>(ExpenseDataProvider.createExpenses(balanceGroupCreatorIds.expenseIds())))
                 .build();
     }
 
@@ -36,8 +33,6 @@ public class BalanceGroupDataProvider {
                 .updatedAt(UPDATED_AT)
                 .name(NAME)
                 .ownerUserId(OWNER_USER_ID)
-                .groupMembers(new HashSet<>(BalanceGroupMemberDataProvider.createBalanceGroupMemberDtoList(balanceGroupCreatorIds.groupMemberIds())))
-                .expenses(new HashSet<>(ExpenseDataProvider.createExpenseDtoList(balanceGroupCreatorIds.expenseIds())))
                 .build();
     }
 

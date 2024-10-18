@@ -3,6 +3,7 @@ package com.salary.management.inventory_service.reporitory;
 import com.salary.management.inventory_service.AbstractIT;
 import com.salary.management.inventory_service.model.SplitType;
 import com.salary.management.inventory_service.model.entity.BalanceGroup;
+import com.salary.management.inventory_service.model.entity.BalanceGroupMember;
 import com.salary.management.inventory_service.model.entity.Expense;
 import com.salary.management.inventory_service.repository.ExpenseRepository;
 import jakarta.validation.ConstraintViolationException;
@@ -14,6 +15,7 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static com.salary.management.inventory_service.BalanceGroupMemberDataProvider.NICKNAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,8 +46,8 @@ public class ExpenseRepositoryIT extends AbstractIT {
                     assertNotNull(savedExpense.getUpdatedAt());
                     assertEquals(NAME, savedExpense.getName());
                     assertEquals(AMOUNT, savedExpense.getAmount());
-                    assertEquals(PAID_BY_USER_ID, savedExpense.getPaidByUserId());
-                    assertEquals(NEED_TO_PAY_USER_ID, savedExpense.getNeedToPayUserId());
+                    assertEquals(PAID_BY_USER_ID, savedExpense.getPaidByGroupMember().getId());
+                    assertEquals(NEED_TO_PAY_USER_ID, savedExpense.getNeedToPayGroupMember().getId());
                     assertEquals(SPLIT_TYPE, savedExpense.getSplitType());
                     assertFalse(savedExpense.isResolved());
                 })
@@ -85,7 +87,7 @@ public class ExpenseRepositoryIT extends AbstractIT {
     @Test
     void shouldThrowExceptionWhenPaidByUserIdIsNull() {
         var expense = createTestExpense();
-        expense.setPaidByUserId(null);
+        expense.setPaidByGroupMember(null);
 
         StepVerifier.create(expenseRepository.save(expense))
                 .expectError(ConstraintViolationException.class)
@@ -106,9 +108,15 @@ public class ExpenseRepositoryIT extends AbstractIT {
         return Expense.builder()
                 .name(NAME)
                 .amount(AMOUNT)
-                .paidByUserId(PAID_BY_USER_ID)
+                .paidByGroupMember(BalanceGroupMember.builder()
+                        .id(PAID_BY_USER_ID)
+                        .nickname(NICKNAME)
+                        .build())
                 .splitType(SPLIT_TYPE)
-                .needToPayUserId(NEED_TO_PAY_USER_ID)
+                .needToPayGroupMember(BalanceGroupMember.builder()
+                        .id(NEED_TO_PAY_USER_ID)
+                        .nickname(NICKNAME)
+                        .build())
                 .resolved(false)
                 .balanceGroup(BalanceGroup.builder().build())
                 .build();

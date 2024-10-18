@@ -3,9 +3,6 @@ spring:
     compose:
       enabled: true
       file: ./salary-management-inventory-service/compose.yml
-  graphql:
-    graphiql:
-      enabled: true
 springdoc:
   api-docs:
     enabled: true
