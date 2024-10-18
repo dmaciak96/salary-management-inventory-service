@@ -2,6 +2,7 @@ spring:
   docker:
     compose:
       enabled: true
+      file: ./salary-management-inventory-service/compose.yml
   graphql:
     graphiql:
       enabled: true
