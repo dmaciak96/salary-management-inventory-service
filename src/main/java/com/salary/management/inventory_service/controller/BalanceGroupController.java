@@ -82,23 +82,49 @@ public class BalanceGroupController {
     @PostMapping("/{id}/expenses")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ExpenseDto> saveExpenseInBalanceGroup(@PathVariable UUID id, @RequestBody ExpenseHttpRequest expenseRequest) {
-        return balanceGroupService.findById(id)
+        if (expenseRequest.needToPayGroupMember() == null) {
+            return saveWithoutNeedToPay(id, expenseRequest);
+        } else {
+            return saveWithNeedToPay(id, expenseRequest);
+        }
+    }
+
+    private Mono<ExpenseDto> saveWithoutNeedToPay(UUID balanceGroupId, ExpenseHttpRequest expenseRequest) {
+        return balanceGroupService.findById(balanceGroupId)
                 .switchIfEmpty(Mono.error(
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + balanceGroupId)))
                 .flatMap(balanceGroupDto -> {
-                    var needToPayGroupMemberMono = balanceGroupMemberService.findAllByBalanceGroupId(id)
-                            .filter(balanceGroupMember -> balanceGroupMember.getId().equals(expenseRequest.needToPayGroupMember()))
-                            .next();
-                    var paidByGroupMemberMono = balanceGroupMemberService.findAllByBalanceGroupId(id)
-                            .filter(balanceGroupMember -> balanceGroupMember.getId().equals(expenseRequest.paidByGroupMember()))
-                            .next();
-                    return Mono.zip(needToPayGroupMemberMono, paidByGroupMemberMono)
-                            .flatMap(tuple -> {
-                                var needToPayGroupMember = tuple.getT1();
-                                var paidByGroupMember = tuple.getT2();
-                                return mapToDtoAndSave(expenseRequest, balanceGroupDto, paidByGroupMember, needToPayGroupMember);
-                            });
+                    var paidByGroupMemberMono = findGroupMemberById(balanceGroupId, expenseRequest.paidByGroupMember());
+                    return Mono.zip(paidByGroupMemberMono, Mono.just(balanceGroupDto));
+                })
+                .flatMap(tuple -> {
+                    var paidByGroupMember = tuple.getT1();
+                    var balanceGroupDto = tuple.getT2();
+                    return mapToDtoAndSave(expenseRequest, balanceGroupDto, paidByGroupMember, null);
                 });
+    }
+
+    private Mono<ExpenseDto> saveWithNeedToPay(UUID balanceGroupId, ExpenseHttpRequest expenseRequest) {
+        return balanceGroupService.findById(balanceGroupId)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + balanceGroupId)))
+                .flatMap(balanceGroupDto -> {
+                    var paidByGroupMemberMono = findGroupMemberById(balanceGroupId, expenseRequest.paidByGroupMember());
+                    var needToPayGroupMemberMono = findGroupMemberById(balanceGroupId, expenseRequest.needToPayGroupMember());
+                    return Mono.zip(needToPayGroupMemberMono, paidByGroupMemberMono, Mono.just(balanceGroupDto));
+                })
+                .flatMap(tuple -> {
+                    var needToPayGroupMember = tuple.getT1();
+                    var paidByGroupMember = tuple.getT2();
+                    var balanceGroupDto = tuple.getT3();
+                    return mapToDtoAndSave(expenseRequest, balanceGroupDto, paidByGroupMember, needToPayGroupMember);
+                });
+    }
+
+    private Mono<BalanceGroupMemberDto> findGroupMemberById(UUID balanceGroupId, UUID memberId) {
+        return balanceGroupMemberService.findAllByBalanceGroupId(balanceGroupId)
+                        .filter(balanceGroupMember -> balanceGroupMember.getId().equals(memberId))
+                        .next();
     }
 
     private Mono<ExpenseDto> mapToDtoAndSave(ExpenseHttpRequest expenseRequest,
