@@ -28,8 +28,6 @@ type BalanceGroupMember {
     id: ID
     createdAt: String
     updatedAt: String
-    userId: ID
-    nickname: String
 }
 
 type Expense {
