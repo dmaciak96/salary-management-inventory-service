@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Data
 @Document
@@ -27,9 +26,11 @@ public class Expense extends AbstractDocument {
     private BigDecimal amount;
 
     @NotNull
-    private UUID paidByUserId;
+    @DocumentReference
+    private BalanceGroupMember paidByGroupMember;
 
-    private UUID needToPayUserId;
+    @DocumentReference
+    private BalanceGroupMember needToPayGroupMember;
 
     @NotNull
     private SplitType splitType;

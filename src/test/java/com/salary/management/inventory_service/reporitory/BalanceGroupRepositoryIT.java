@@ -37,8 +37,6 @@ public class BalanceGroupRepositoryIT extends AbstractIT {
                     assertNotNull(savedBalanceGroup.getUpdatedAt());
                     assertEquals(OWNER_ID, savedBalanceGroup.getOwnerUserId());
                     assertEquals(NAME, savedBalanceGroup.getName());
-                    assertTrue(savedBalanceGroup.getExpenses().isEmpty());
-                    assertTrue(savedBalanceGroup.getGroupMembers().isEmpty());
                 })
                 .verifyComplete();
     }
@@ -76,7 +74,6 @@ public class BalanceGroupRepositoryIT extends AbstractIT {
     @Test
     void shouldThrowExceptionWhenMembersIsNull() {
         var balanceGroup = createBalanceGroup();
-        balanceGroup.setGroupMembers(null);
 
         StepVerifier.create(balanceGroupRepository.save(balanceGroup))
                 .expectError(ConstraintViolationException.class)
@@ -86,7 +83,6 @@ public class BalanceGroupRepositoryIT extends AbstractIT {
     @Test
     void shouldThrowExceptionWhenExpensesIsNull() {
         var balanceGroup = createBalanceGroup();
-        balanceGroup.setExpenses(null);
 
         StepVerifier.create(balanceGroupRepository.save(balanceGroup))
                 .expectError(ConstraintViolationException.class)

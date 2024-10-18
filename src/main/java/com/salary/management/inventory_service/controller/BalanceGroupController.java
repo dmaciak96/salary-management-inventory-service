@@ -3,6 +3,7 @@ package com.salary.management.inventory_service.controller;
 import com.salary.management.inventory_service.model.dto.BalanceGroupDto;
 import com.salary.management.inventory_service.model.dto.BalanceGroupMemberDto;
 import com.salary.management.inventory_service.model.dto.ExpenseDto;
+import com.salary.management.inventory_service.model.http.ExpenseHttpRequest;
 import com.salary.management.inventory_service.service.BalanceGroupMemberService;
 import com.salary.management.inventory_service.service.BalanceGroupService;
 import com.salary.management.inventory_service.service.ExpenseService;
@@ -80,11 +81,42 @@ public class BalanceGroupController {
 
     @PostMapping("/{id}/expenses")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ExpenseDto> saveExpenseInBalanceGroup(@PathVariable UUID id, @RequestBody ExpenseDto expenseDto) {
+    public Mono<ExpenseDto> saveExpenseInBalanceGroup(@PathVariable UUID id, @RequestBody ExpenseHttpRequest expenseRequest) {
         return balanceGroupService.findById(id)
                 .switchIfEmpty(Mono.error(
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
-                .flatMap(balanceGroupDto -> expenseService.save(expenseDto, balanceGroupDto));
+                .flatMap(balanceGroupDto -> {
+                    var needToPayGroupMemberMono = balanceGroupMemberService.findAllByBalanceGroupId(id)
+                            .filter(balanceGroupMember -> balanceGroupMember.getId().equals(expenseRequest.needToPayGroupMember()))
+                            .next();
+                    var paidByGroupMemberMono = balanceGroupMemberService.findAllByBalanceGroupId(id)
+                            .filter(balanceGroupMember -> balanceGroupMember.getId().equals(expenseRequest.paidByGroupMember()))
+                            .next();
+                    return Mono.zip(needToPayGroupMemberMono, paidByGroupMemberMono)
+                            .flatMap(tuple -> {
+                                var needToPayGroupMember = tuple.getT1();
+                                var paidByGroupMember = tuple.getT2();
+                                return mapToDtoAndSave(expenseRequest, balanceGroupDto, paidByGroupMember, needToPayGroupMember);
+                            });
+                });
+    }
+
+    private Mono<ExpenseDto> mapToDtoAndSave(ExpenseHttpRequest expenseRequest,
+                                             BalanceGroupDto balanceGroupDto,
+                                             BalanceGroupMemberDto paidByGroupMember,
+                                             BalanceGroupMemberDto needToPayGroupMember) {
+        if (paidByGroupMember == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Paid By Group Member not found with id: " + expenseRequest.paidByGroupMember());
+        }
+        var expenseDto = ExpenseDto.builder()
+                .name(expenseRequest.name())
+                .amount(expenseRequest.amount())
+                .paidByGroupMember(paidByGroupMember)
+                .needToPayGroupMember(needToPayGroupMember)
+                .splitType(expenseRequest.splitType())
+                .resolved(expenseRequest.resolved())
+                .build();
+        return expenseService.save(expenseDto, balanceGroupDto);
     }
 
     @DeleteMapping("/{id}/expenses/{expenseId}")

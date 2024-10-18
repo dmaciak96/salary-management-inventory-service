@@ -1,13 +1,17 @@
 package com.salary.management.inventory_service;
 
 import com.salary.management.inventory_service.model.SplitType;
+import com.salary.management.inventory_service.model.dto.BalanceGroupMemberDto;
 import com.salary.management.inventory_service.model.dto.ExpenseDto;
+import com.salary.management.inventory_service.model.entity.BalanceGroupMember;
 import com.salary.management.inventory_service.model.entity.Expense;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import static com.salary.management.inventory_service.BalanceGroupMemberDataProvider.NICKNAME;
 
 public class ExpenseDataProvider {
     public static final Instant CREATED_AT = Instant.now();
@@ -26,8 +30,14 @@ public class ExpenseDataProvider {
                 .updatedAt(UPDATED_AT)
                 .name(NAME)
                 .amount(AMOUNT)
-                .paidByUserId(PAID_BY_USER_ID)
-                .needToPayUserId(NEED_TO_PAY_USER_ID)
+                .paidByGroupMember(BalanceGroupMember.builder()
+                        .nickname(NICKNAME)
+                        .id(PAID_BY_USER_ID)
+                        .build())
+                .needToPayGroupMember(BalanceGroupMember.builder()
+                        .nickname(NICKNAME)
+                        .id(NEED_TO_PAY_USER_ID)
+                        .build())
                 .splitType(SPLIT_TYPE)
                 .resolved(RESOLVED)
                 .build();
@@ -47,8 +57,14 @@ public class ExpenseDataProvider {
                 .updatedAt(UPDATED_AT)
                 .name(NAME)
                 .amount(AMOUNT)
-                .paidByUserId(PAID_BY_USER_ID)
-                .needToPayUserId(NEED_TO_PAY_USER_ID)
+                .paidByGroupMember(BalanceGroupMemberDto.builder()
+                        .nickname(NICKNAME)
+                        .id(PAID_BY_USER_ID)
+                        .build())
+                .needToPayGroupMember(BalanceGroupMemberDto.builder()
+                        .nickname(NICKNAME)
+                        .id(NEED_TO_PAY_USER_ID)
+                        .build())
                 .splitType(SPLIT_TYPE)
                 .resolved(RESOLVED)
                 .build();
