@@ -2,9 +2,6 @@ spring:
   docker:
     compose:
       enabled: true
-  graphql:
-    graphiql:
-      enabled: true
 springdoc:
   api-docs:
     enabled: true

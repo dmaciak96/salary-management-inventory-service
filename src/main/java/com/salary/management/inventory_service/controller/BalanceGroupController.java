@@ -1,8 +1,5 @@
 package com.salary.management.inventory_service.controller;
 
-import com.salary.management.inventory_service.exception.BalanceGroupMemberNotFoundException;
-import com.salary.management.inventory_service.exception.BalanceGroupNotFoundException;
-import com.salary.management.inventory_service.exception.ExpenseNotFoundException;
 import com.salary.management.inventory_service.model.dto.BalanceGroupDto;
 import com.salary.management.inventory_service.model.dto.BalanceGroupMemberDto;
 import com.salary.management.inventory_service.model.dto.ExpenseDto;
@@ -10,16 +7,23 @@ import com.salary.management.inventory_service.service.BalanceGroupMemberService
 import com.salary.management.inventory_service.service.BalanceGroupService;
 import com.salary.management.inventory_service.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
-import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-@Controller
+@RestController
+@RequestMapping("/balance-groups")
 @RequiredArgsConstructor
 public class BalanceGroupController {
 
@@ -27,100 +31,117 @@ public class BalanceGroupController {
     private final BalanceGroupService balanceGroupService;
     private final BalanceGroupMemberService balanceGroupMemberService;
 
-    @MutationMapping
-    public Mono<BalanceGroupDto> saveBalanceGroup(@Argument BalanceGroupDto balanceGroupDto) {
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<BalanceGroupDto> saveBalanceGroup(@RequestBody BalanceGroupDto balanceGroupDto) {
         return balanceGroupService.save(balanceGroupDto);
     }
 
-    @QueryMapping
+    @GetMapping
     public Flux<BalanceGroupDto> findAllBalanceGroups() {
         return balanceGroupService.findAll();
     }
 
-    @QueryMapping
-    public Mono<BalanceGroupDto> findBalanceGroupById(@Argument UUID balanceGroupId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)));
+    @GetMapping("/{id}")
+    public Mono<BalanceGroupDto> findBalanceGroupById(@PathVariable UUID id) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)));
     }
 
-    @MutationMapping
-    public Mono<Void> deleteBalanceGroup(@Argument UUID balanceGroupId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMap(balanceGroupDto -> balanceGroupService.delete(balanceGroupId));
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteBalanceGroup(@PathVariable UUID id) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMap(balanceGroupDto -> balanceGroupService.delete(id));
     }
 
-    @QueryMapping
-    public Flux<ExpenseDto> findAllExpensesFromBalanceGroup(@Argument UUID balanceGroupId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(balanceGroupId));
+    @GetMapping("/{id}/expenses")
+    public Flux<ExpenseDto> findAllExpensesFromBalanceGroup(@PathVariable UUID id) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(id));
     }
 
-    @QueryMapping
-    public Mono<ExpenseDto> findSingleExpenseInBalanceGroup(@Argument UUID balanceGroupId, @Argument UUID expenseId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(balanceGroupId))
+    @GetMapping("/{id}/expenses/{expenseId}")
+    public Mono<ExpenseDto> findSingleExpenseInBalanceGroup(@PathVariable UUID id, @PathVariable UUID expenseId) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(id))
                 .filter(expenseDto -> expenseDto.getId().equals(expenseId))
-                .switchIfEmpty(Mono.error(new ExpenseNotFoundException(expenseId)))
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found with id: " + expenseId)))
                 .next();
     }
 
-    @MutationMapping
-    public Mono<ExpenseDto> saveExpenseInBalanceGroup(@Argument UUID balanceGroupId, @Argument ExpenseDto expense) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMap(balanceGroupDto -> expenseService.save(expense, balanceGroupDto));
+    @PostMapping("/{id}/expenses")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ExpenseDto> saveExpenseInBalanceGroup(@PathVariable UUID id, @RequestBody ExpenseDto expenseDto) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMap(balanceGroupDto -> expenseService.save(expenseDto, balanceGroupDto));
     }
 
-    @MutationMapping
-    public Mono<Void> deleteExpenseFromBalanceGroup(@Argument UUID balanceGroupId, @Argument UUID expenseId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(balanceGroupId))
+    @DeleteMapping("/{id}/expenses/{expenseId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteExpenseFromBalanceGroup(@PathVariable UUID id, @PathVariable UUID expenseId) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> expenseService.findAllByBalanceGroup(id))
                 .filter(expenseDto -> expenseDto.getId().equals(expenseId))
-                .switchIfEmpty(Mono.error(new ExpenseNotFoundException(expenseId)))
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found with id: " + expenseId)))
                 .next()
                 .flatMap(expenseDto -> expenseService.delete(expenseId));
     }
 
-    @QueryMapping
-    public Flux<BalanceGroupMemberDto> findAllGroupMembersFromBalanceGroup(@Argument UUID balanceGroupId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(balanceGroupId));
+    @GetMapping("/{id}/members")
+    public Flux<BalanceGroupMemberDto> findAllGroupMembersFromBalanceGroup(@PathVariable UUID id) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(id));
     }
 
-    @QueryMapping
-    public Mono<BalanceGroupMemberDto> findSingleGroupMemberInBalanceGroup(@Argument UUID balanceGroupId,
-                                                                           @Argument UUID balanceGroupMemberId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(balanceGroupId))
-                .filter(balanceGroupMemberDto -> balanceGroupMemberDto.getId().equals(balanceGroupMemberId))
+    @GetMapping("/{id}/members/{memberId}")
+    public Mono<BalanceGroupMemberDto> findSingleGroupMemberInBalanceGroup(@PathVariable UUID id, @PathVariable UUID memberId) {
+        return balanceGroupService.findById(id)
                 .switchIfEmpty(Mono.error(
-                        new BalanceGroupNotFoundException(balanceGroupId)))
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(id))
+                .filter(balanceGroupMemberDto -> balanceGroupMemberDto.getId().equals(memberId))
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "GroupMember not found with id: " + memberId)))
                 .next();
     }
 
-    @MutationMapping
-    public Mono<BalanceGroupMemberDto> saveGroupMemberInBalanceGroup(@Argument UUID balanceGroupId,
-                                                                     @Argument BalanceGroupMemberDto balanceGroupMember) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMap(balanceGroupDto -> balanceGroupMemberService.save(balanceGroupMember, balanceGroupDto));
+    @PostMapping("/{id}/members")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<BalanceGroupMemberDto> saveGroupMemberInBalanceGroup(@PathVariable UUID id,
+                                                                     @RequestBody BalanceGroupMemberDto balanceGroupMemberDto) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMap(balanceGroupDto -> balanceGroupMemberService.save(balanceGroupMemberDto, balanceGroupDto));
     }
 
-    @MutationMapping
-    public Mono<Void> deleteGroupMemberFromBalanceGroup(@Argument UUID balanceGroupId,
-                                                        @Argument UUID balanceGroupMemberId) {
-        return balanceGroupService.findById(balanceGroupId)
-                .switchIfEmpty(Mono.error(new BalanceGroupNotFoundException(balanceGroupId)))
-                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(balanceGroupId))
-                .filter(balanceGroupMemberDto -> balanceGroupMemberDto.getId().equals(balanceGroupMemberId))
-                .switchIfEmpty(Mono.error(new BalanceGroupMemberNotFoundException(balanceGroupMemberId)))
+    @DeleteMapping("/{id}/members/{memberId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteGroupMemberFromBalanceGroup(@PathVariable UUID id, @PathVariable UUID memberId) {
+        return balanceGroupService.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "BalanceGroup not found with id: " + id)))
+                .flatMapMany(balanceGroupDto -> balanceGroupMemberService.findAllByBalanceGroupId(id))
+                .filter(balanceGroupMemberDto -> balanceGroupMemberDto.getId().equals(memberId))
+                .switchIfEmpty(Mono.error(
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "GroupMember not found with id: " + memberId)))
                 .next()
-                .flatMap(balanceGroupMemberDto -> balanceGroupMemberService.delete(balanceGroupMemberId));
+                .flatMap(balanceGroupMemberDto -> balanceGroupMemberService.delete(memberId));
     }
 }
