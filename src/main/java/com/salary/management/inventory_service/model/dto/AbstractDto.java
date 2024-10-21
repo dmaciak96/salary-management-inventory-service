@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-public class AbstractDto {
+public abstract class AbstractDto {
 
     private UUID id;
     private Instant createdAt;
